@@ -1,0 +1,65 @@
+name: Test Trading Bot Execution
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-bot:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v3
+    
+    - name: 🐍 Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: 📦 Install Dependencies
+      run: |
+        echo "Installing required packages..."
+        python -m pip install --upgrade pip
+        pip install pandas numpy requests
+        echo "✓ All dependencies installed"
+    
+    - name: 🔍 Verify Bot File Exists
+      run: |
+        if [ -f "trading_bot_testable.py" ]; then
+          echo "✓ trading_bot_testable.py found"
+          ls -lh trading_bot_testable.py
+        else
+          echo "✗ trading_bot_testable.py NOT found"
+          exit 1
+        fi
+    
+    - name: 🤖 Run Trading Bot
+      run: |
+        echo "=========================================="
+        echo "Starting Trading Bot Execution..."
+        echo "=========================================="
+        python trading_bot_testable.py
+        echo "=========================================="
+        echo "Bot execution completed!"
+        echo "=========================================="
+    
+    - name: ✅ Test Summary
+      if: always()
+      run: |
+        echo ""
+        echo "╔════════════════════════════════════════════════════════╗"
+        echo "║          TRADING BOT TEST COMPLETED                    ║"
+        echo "╚════════════════════════════════════════════════════════╝"
+        echo ""
+        echo "✓ Python Version: ${{ matrix.python-version }}"
+        echo "✓ OS: ubuntu-latest"
+        echo "✓ Dependencies: pandas, numpy, requests"
+        echo ""
